@@ -28,7 +28,7 @@ public class CrawlerService {
         
         listMovieUrl.forEach(mov -> System.out.println(mov));
         
-        parseData();
+        fetchMovieData(listMovieUrl.get(0));
         createJsonResponse();
 
         return "Teste";
@@ -56,7 +56,15 @@ public class CrawlerService {
         }
     }
 
-    private void parseData() {
+    private void fetchMovieData(String movieUrl) {
+        try {
+            var movieData = Jsoup.connect(imdbUrl.concat(movieUrl))
+                .get();
+
+            System.err.println(movieData.body().html());    
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
