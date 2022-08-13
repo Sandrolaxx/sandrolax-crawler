@@ -7,13 +7,15 @@ public class MovieDataDto {
     
     private String title;
 
+    private String releaseDate;
+
     private BigDecimal rating;
 
     private List<DirectorDto> direction;
 
     private List<CastDto> cast;
 
-    private String comment;
+    private CommentDto comment;
 
     public String getTitle() {
         return title;
@@ -21,6 +23,14 @@ public class MovieDataDto {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(String releaseDate) {
+        this.releaseDate = releaseDate;
     }
 
     public BigDecimal getRating() {
@@ -47,11 +57,11 @@ public class MovieDataDto {
         this.cast = cast;
     }
 
-    public String getComment() {
+    public CommentDto getComment() {
         return comment;
     }
 
-    public void setComment(String comment) {
+    public void setComment(CommentDto comment) {
         this.comment = comment;
     }
     
