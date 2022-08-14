@@ -94,12 +94,12 @@ public class CrawlerService extends AbstractCrawler {
         movieDataDto.setReleaseDate(releaseDate);
         movieDataDto.setRating(rating);
         movieDataDto.setTitle(title);
-        movieDataDto.setComment(getFirstCommentOfStart(movieData, reviewStar));
+        movieDataDto.setComment(getFirstCommentOfStar(movieData, reviewStar));
 
         return movieDataDto;
     }
 
-    private CommentDto getFirstCommentOfStart(Document movieData, Integer reviewStar) {
+    private CommentDto getFirstCommentOfStar(Document movieData, Integer reviewStar) {
         var commentDto = new CommentDto();
         var starsFilter = getFilterByStarUrl(reviewStar);
         var reviewsUrl = movieData.getElementsByClass(CLASS_COMMENT_DATA)
