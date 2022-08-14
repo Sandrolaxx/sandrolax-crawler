@@ -10,7 +10,6 @@ import java.util.stream.IntStream;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -26,19 +25,14 @@ import utils.ListUtil;
  * @author SRamos
  */
 @ApplicationScoped
-public class CrawlerService {
+public class CrawlerService extends AbstractCrawler {
 
-    @ConfigProperty(name = "imdb-base-url")
-    String imdbUrl;
-
-    private final Integer firstChild = 0;
-
-    public List<MovieDataDto> handleCrawl() {
+    public List<MovieDataDto> handleCrawl(Integer reviewStar) {
         var listMovieUrl = fetchMoviesUrl();
         var listMovieDto = listMovieUrl.stream()
-            .map(url -> fetchMovieData(url))
-            .sorted(Comparator.comparing(m -> m.getRating()))
-            .collect(Collectors.toList());
+                .map(url -> fetchMovieData(url, reviewStar))
+                .sorted(Comparator.comparing(m -> m.getRating()))
+                .collect(Collectors.toList());
 
         return listMovieDto;
     }
@@ -46,71 +40,74 @@ public class CrawlerService {
     private List<String> fetchMoviesUrl() {
         try {
             var trList = new ArrayList<Element>();
-            var urls = new ArrayList<String>();
-            var pageData = Jsoup.connect(imdbUrl.concat("/chart/bottom"))
+            var pageData = Jsoup.connect(getWorstMoviesUrl())
                     .header("Accept-Language", "en-US")
                     .timeout(40000)
                     .get();
 
-            var elements = pageData.getElementsByClass("titleColumn");
-            IntStream.rangeClosed(0, 5)
+            var elements = pageData.getElementsByClass(CLASS_TITLE_COLUMN);
+            IntStream.rangeClosed(0, 2)
                     .forEach(i -> trList.add(elements.get(i)));
 
-            trList.forEach(tr -> urls.add(ListUtil.first(tr.getElementsByTag("a")).attr("href")));
-
-            return urls;
+            return trList.stream()
+                    .map(tr -> ListUtil.first(tr.getElementsByTag(TAG_A)).attr(ATTRIBUTE_HREF))
+                    .collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
         }
     }
 
-    private MovieDataDto fetchMovieData(String movieUrl) {
+    private MovieDataDto fetchMovieData(String movieUrl, Integer reviewStar) {
         try {
-            var movieData = Jsoup.connect(imdbUrl.concat(movieUrl))
+            var movieData = Jsoup.connect(getMovieUrl(movieUrl))
                     .header("Accept-Language", "en-US")
                     .timeout(40000)
                     .get();
 
-            return getMovieDataDto(movieData);
+            return getMovieDataDto(movieData, reviewStar);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
         }
     }
 
-    private MovieDataDto getMovieDataDto(Document movieData) {
+    private MovieDataDto getMovieDataDto(Document movieData, Integer reviewStar) {
         var movieDataDto = new MovieDataDto();
-        var fullElement = movieData.getElementsByClass("sc-fa02f843-0 fjLeDR").first();
+        var fullElement = movieData.getElementsByClass(CLASS_DIRECTION_DATA).first();
+        var releaseDate = movieData.getElementsByClass(CLASS_RELEASE_DATE).first().text();
+        var rating = new BigDecimal(movieData.getElementsByClass(CLASS_RATING).first().text());
+        var title = movieData.getElementsByClass(CLASS_MOVIE_TITLE).first().getElementsByTag(TAG_H1).first().text();
 
-        var direction = fullElement.child(firstChild).getElementsByTag("li").stream()
-                .filter(li -> li.child(firstChild).text().equals("Directors") || li.child(firstChild).text().equals("Director"))
-                .flatMap(li -> li.getElementsByTag("div").first().getElementsByTag("li").stream())
+        var direction = fullElement.child(firstChild).getElementsByTag(TAG_LI).stream()
+                .filter(li -> directorsValidation(li))
+                .flatMap(li -> li.getElementsByTag(TAG_DIV).first().getElementsByTag(TAG_LI).stream())
                 .map(Element::text)
                 .map(DirectorDto::new)
                 .collect(Collectors.toList());
 
-        var cast = movieData.getElementsByClass("sc-36c36dd0-1 QSQgP").stream()
+        var cast = movieData.getElementsByClass(CLASS_CAST_DATA).stream()
                 .map(Element::text)
                 .map(CastDto::new)
                 .collect(Collectors.toList());
 
         movieDataDto.setDirection(direction);
         movieDataDto.setCast(cast);
-        movieDataDto.setReleaseDate(movieData.getElementsByClass("sc-8c396aa2-2 itZqyK").first().text());
-        movieDataDto.setRating(new BigDecimal(movieData.getElementsByClass("sc-7ab21ed2-1 jGRxWM").first().text()));
-        movieDataDto.setTitle(movieData.getElementsByClass("sc-80d4314-1 fbQftq").first().getElementsByTag("h1").first().text());
-        movieDataDto.setComment(getFirstCommentOfStart(movieData, 5));
+        movieDataDto.setReleaseDate(releaseDate);
+        movieDataDto.setRating(rating);
+        movieDataDto.setTitle(title);
+        movieDataDto.setComment(getFirstCommentOfStart(movieData, reviewStar));
 
         return movieDataDto;
     }
 
-    private CommentDto getFirstCommentOfStart(Document movieData, Integer starts) {
+    private CommentDto getFirstCommentOfStart(Document movieData, Integer reviewStar) {
         var commentDto = new CommentDto();
-        var starsFilter = "?sort=helpfulnessScore&dir=desc&ratingFilter=".concat(String.valueOf(5));
-        var reviewsUrl = movieData.getElementsByClass("sc-66a20916-0 lQXVY").first().getElementsByTag("a").first()
-                .attr("href");
-        reviewsUrl = reviewsUrl.replaceAll("\\?.*", starsFilter);
+        var starsFilter = getFilterByStarUrl(reviewStar);
+        var reviewsUrl = movieData.getElementsByClass(CLASS_COMMENT_DATA)
+                .first().getElementsByTag(TAG_A)
+                .first().attr(ATTRIBUTE_HREF)
+                .replaceAll("\\?.*", starsFilter);
 
         try {
             var commentsData = Jsoup.connect(imdbUrl.concat(reviewsUrl))
@@ -118,8 +115,8 @@ public class CrawlerService {
                     .timeout(40000)
                     .get();
 
-            var title = commentsData.getElementsByClass("title").first().text();
-            var review = commentsData.getElementsByClass("text show-more__control").first().text();
+            var title = commentsData.getElementsByClass(CLASS_COMMENT_TITLE).first().text();
+            var review = commentsData.getElementsByClass(CLASS_COMMENT_REVIEW).first().text();
 
             commentDto.setTitle(title);
             commentDto.setReview(review);
