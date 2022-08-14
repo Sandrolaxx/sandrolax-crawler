@@ -3,6 +3,10 @@ package service;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jsoup.nodes.Element;
 
+/**
+ *
+ * @author SRamos
+ */
 public abstract class AbstractCrawler {
 
     @ConfigProperty(name = "imdb-base-url")

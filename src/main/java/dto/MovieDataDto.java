@@ -3,6 +3,10 @@ package dto;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ *
+ * @author SRamos
+ */
 public class MovieDataDto {
     
     private String title;

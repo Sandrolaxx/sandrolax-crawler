@@ -1,5 +1,9 @@
 package dto;
 
+/**
+ *
+ * @author SRamos
+ */
 public class DirectorDto {
 
     private String director;

@@ -1,52 +1,80 @@
-# sandrolax-crawler Project
+## 😎 Sobre o projeto
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+Trata-se de uma aplicação criada para realizar a busca de informações em páginas web, também conhecidos como [Crawler](https://globalad.com.br/blog/o-que-e-crawler/), este do projeto em específico busca as informações dos top 10 piores filmes do [Imdb](https://www.imdb.com/chart/bottom) e as disponibiliza em uma API Rest.
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+Created with [Quarkus](https://quarkus.io/), the Supersonic Subatomic Java Framework.
 
-## Running the application in dev mode
+---
 
-You can run your application in dev mode that enables live coding using:
-```shell script
-./mvnw compile quarkus:dev
+## 🤓 Tecnologias utilizadas
+
+* 🔤 Lang - [JAVA](https://www.java.com/pt-BR/)
+* ⚛️ Framework - [Quarkus](https://quarkus.io/)
+* 📃 Doc - [Swagger](https://swagger.io/)
+* ✅ Test - [JUnit5](https://junit.org/junit5/)
+* ✅ Test - [Approval Tests](https://approvaltests.com/)
+
+---
+
+## 🎯 Desafios do Projeto
+
+* ✅ A Lista dos 10 filmes com pior nota no site, em ordem decrescente de melhor para pior nota.
+* ✅ Nome do Filme (em inglês).
+* ✅ Nota (com uma casa decimal).
+* ✅ Diretor(es).
+* ✅ Elenco principal.
+* ✅ Ao menos um comentário POSITIVO sobre o filme (comentário que deu uma nota >= 5).
+
+Extras adicionados:
+* ✅ Adição do Header Param "review_star" para ser possível o usuário definir a quantidade de estrelas do primeiro comentário possitivo.
+* ✅ Documentação da API com Swagger.
+* ✅ Teste unitário da rota.
+---
+
+## 🧑‍💻 Como iniciar a aplicação
+
+### Executando o aplicativo no dev mode
+
+Você pode executar em dev mode utilizando os seguinte comando:
+```script de shell
+./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
+> **_NOTE:_** Quarkus vem com uma Dev UI disponível em dev mode em http://localhost:8080/q/dev/.
 
-## Packaging and running the application
+Adicionada também documentação da API com **Swagger** disponível em: **http://localhost:8080/q/swagger-ui/#**.
 
-The application can be packaged using:
-```shell script
+Exemplo da documentação da API:
+![Swagger Exemple](https://user-images.githubusercontent.com/61207420/184554981-302ba4f1-a5f7-491a-a262-57221b9c9b5c.png)
+
+
+### Empacotando e executando a aplicação
+
+A aplicação pode ser empacotada usando:
+```script de shell
 ./mvnw package
 ```
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+O comando produz o arquivo `quarkus-run.jar` no diretório `target/quarkus-app/`.
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+Esteja ciente de que não é um _über-jar_ pois as dependências são copiadas para o diretório `target/quarkus-app/lib/`.
 
-If you want to build an _über-jar_, execute the following command:
-```shell script
+A aplicação pode ser executada com o comando: 
+```bash
+java -jar target/quarkus-app/quarkus-run.jar
+```
+
+Se você deseja construir um _über-jar_, execute o seguinte comando:
+```bash
 ./mvnw package -Dquarkus.package.type=uber-jar
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using: 
-```shell script
-./mvnw package -Pnative
+A aplicação empacotada como um _über-jar_ pode ser executada com: 
+```bash
+java -jar target/*-runner.jar
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
-```shell script
-./mvnw package -Pnative -Dquarkus.native.container-build=true
-```
+---
 
-You can then execute your native executable with: `./target/sandrolax-crawler-1.0.0-SNAPSHOT-runner`
+## 📃 Licença
 
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.
-
-## Related Guides
-
-- JSON-B ([guide](https://quarkus.io/guides/rest-json)): JSON Binding support
+Este projeto está sobre a licença [MIT](LICENSE).

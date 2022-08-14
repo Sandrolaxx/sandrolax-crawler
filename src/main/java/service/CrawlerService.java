@@ -3,7 +3,6 @@ package service;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -18,6 +17,7 @@ import dto.CastDto;
 import dto.CommentDto;
 import dto.DirectorDto;
 import dto.MovieDataDto;
+import utils.CrawlerException;
 import utils.ListUtil;
 
 /**
@@ -31,7 +31,7 @@ public class CrawlerService extends AbstractCrawler {
         var listMovieUrl = fetchMoviesUrl();
         var listMovieDto = listMovieUrl.stream()
                 .map(url -> fetchMovieData(url, reviewStar))
-                .sorted(Comparator.comparing(m -> m.getRating()))
+                .sorted((m1, m2) -> m2.getRating().compareTo(m1.getRating()))
                 .collect(Collectors.toList());
 
         return listMovieDto;
@@ -46,15 +46,14 @@ public class CrawlerService extends AbstractCrawler {
                     .get();
 
             var elements = pageData.getElementsByClass(CLASS_TITLE_COLUMN);
-            IntStream.rangeClosed(0, 2)
+            IntStream.rangeClosed(0, 9)
                     .forEach(i -> trList.add(elements.get(i)));
 
             return trList.stream()
                     .map(tr -> ListUtil.first(tr.getElementsByTag(TAG_A)).attr(ATTRIBUTE_HREF))
                     .collect(Collectors.toList());
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+        } catch (IOException | IllegalArgumentException e) {
+            throw new CrawlerException("Erro ao buscar url's dos filmes.", 502);
         }
     }
 
@@ -66,9 +65,8 @@ public class CrawlerService extends AbstractCrawler {
                     .get();
 
             return getMovieDataDto(movieData, reviewStar);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+        } catch (IOException | IllegalArgumentException e) {
+            throw new CrawlerException("Erro ao buscar informação do filme com url:".concat(movieUrl), 502);
         }
     }
 
@@ -122,9 +120,10 @@ public class CrawlerService extends AbstractCrawler {
             commentDto.setReview(review);
 
             return commentDto;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+        } catch (IOException | IllegalArgumentException e) {
+            var movieName = movieData.getElementsByClass(CLASS_MOVIE_TITLE).first().getElementsByTag(TAG_H1).first().text();
+
+            throw new CrawlerException("Erro ao buscar informação dos comentários do filme: ".concat(movieName), 502);
         }
 
     }
